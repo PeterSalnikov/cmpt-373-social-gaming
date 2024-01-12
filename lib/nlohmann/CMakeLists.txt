@@ -1,0 +1,5 @@
+if (NOT APPLE)
+    add_library(nlohmann_json)
+    target_sources(nlohmann_json PRIVATE json.hpp)
+    set_target_properties(nlohmann_json PROPERTIES LINKER_LANGUAGE CXX)
+endif()

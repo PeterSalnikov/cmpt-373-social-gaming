@@ -1,0 +1,71 @@
+diff --git a/lib/taskFactory/SocialGamingTaskFactory.cpp b/lib/taskFactory/SocialGamingTaskFactory.cpp
+index 9724d77..5865080 100644
+--- a/lib/taskFactory/SocialGamingTaskFactory.cpp
++++ b/lib/taskFactory/SocialGamingTaskFactory.cpp
+@@ -21,12 +21,23 @@ template<class... Ts> overload(Ts...) -> overload<Ts...>;
+ template <typename T>
+ std::vector<T> copyVec(const listObj &vec)
+ {
+-    namespace views = std::ranges::views;
+-    auto view = vec
+-                | views::transform([](const auto &item) { return std::get_if<T>(item->getBorrowPtr()); })
+-                | views::filter([](const auto &item) { return item != nullptr; })
+-                | views::transform([](const auto &item) { return *(item); });
+-    return {view.begin(), view.end()};
++    std::vector<T> ret;
++    std::for_each(vec.begin(), vec.end(),
++    [&](const auto &item)
++    {
++        T* ptr;
++        if(ptr = std::get_if<T>(item->getBorrowPtr()))
++        {
++            ret.push_back(*ptr);
++        }
++    });
++    return ret;
++    // namespace views = std::ranges::views;
++    // auto view = vec
++    //             | views::transform([](const auto &item) { return std::get_if<T>(item->getBorrowPtr()); })
++    //             | views::filter([](const auto &item) { return item != nullptr; })
++    //             | views::transform([](const auto &item) { return *(item); });
++    // return {view.begin(), view.end()};
+ }
+ 
+ struct Min { size_t val; };
+@@ -244,8 +255,8 @@ std::shared_ptr<RunnableTask> DefaultFactory<ShuffleTask>::create(mutableVarPoin
+ {
+     // preconditions
+     if(vars.size() != 1)
+-    { 
+-        throw BadVariableArgException("Expected a single argument"); return nullptr; 
++    {
++        throw BadVariableArgException("Expected a single argument"); return nullptr;
+     }
+ 
+     return (std::shared_ptr<RunnableTask>) std::make_shared<ShuffleTask>(*vars.at(0));
+diff --git a/src/include/RuleInterpreter.h b/src/include/RuleInterpreter.h
+index 132dad3..d510e22 100644
+--- a/src/include/RuleInterpreter.h
++++ b/src/include/RuleInterpreter.h
+@@ -99,11 +99,16 @@ public:
+ 	std::vector<ChildNode> getBody() const {return children;}
+     ChildNode getChildWithKey(std::string_view key) const override
+     {
+-        namespace views = std::ranges::views;
+-        auto view = children
+-                    | views::filter([&key](const auto &child) { return child.key == key; })
+-                    | views::take(1);
+-        return *view.begin();
++        // namespace views = std::ranges::views;
++        // auto view = children
++        //             | views::filter([&key](const auto &child) { return child.key == key; })
++        //             | views::take(1);
++        for(const auto &child: children)
++        {
++            if(child.key == key)
++            { return child; }
++        }
++        // return *view.begin();
+     }
+ private:
+ 	//using struct due to ordering of map not being chronological

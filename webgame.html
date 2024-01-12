@@ -1,0 +1,102 @@
+<!-- code base from Nick Sumner github repo: https://github.com/nsumner/web-socket-networking" -->
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Web Chat</title>
+
+  <style>
+    body, input, select, textarea {
+      background: #031e11;
+      color: #10fd60;
+    }
+
+    #messages {
+      width: 80em;
+      height: 40em;
+      border: solid 1px #cccccc;
+      margin-bottom: 5px;
+      overflow-y: hidden;
+    }
+  </style>
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      var ws = null;
+      var uriPieces = window.location.href.split('/');
+      var wsLocation = 'ws://' + uriPieces[2];
+      $('#uri:text').val(wsLocation);
+      
+      $('#connect').click(function() {
+        ws = new WebSocket(uri.value);
+        ws.onopen = function(ev) {
+          appendText("Connected!\n");
+        };
+        ws.onclose = function(ev) {
+          appendText("Disconnected!\n");
+        };
+        ws.onmessage = function(ev) {
+          appendText(ev.data + "\n");
+        };
+        ws.onerror = function(ev) {
+          appendText("[error]\n");
+          console.log(ev);
+        };
+      });
+
+      $('#disconnect').click(function () {
+        ws.close();
+      });
+    });
+  </script>
+</head>
+
+ 
+<body>
+
+  <h1>Welcome!</h1>
+
+  Game server: <input id="uri" size="40">
+  <button id="connect">Connect</button>
+  <button id="disconnect">Disconnect</button><br />
+
+  <!-- get user input and trigger http request -->
+  <form id="createGameForm", style="margin: 10px;">
+    <input type="text" id="createGame" name="createGame" placeholder="Enter game name">
+    <button type="submit">Create Game</button>
+  </form>
+
+  <script>
+    $(document).ready(function() {
+        $("#createGameForm").submit(function(event) {
+            event.preventDefault(); // Prevent the default form submission
+    
+            // Get user input from the text input field
+            var userInput = $("#createGame").val();
+    
+            // Send an HTTP request to the server
+            $.ajax({
+                type: "POST", 
+                url: "http://localhost:8000/create-game", // Replace with the actual server URL
+                data: JSON.stringify(userInput), 
+                contentType: "application/json; charset=utf-8", // Set content type
+                dataType: "json", // Expected data type of the response
+                success: function(response) {
+                    // Handle the server response
+                    console.log("Success: ", response);
+                    $("#response").html("Server Response: " + JSON.stringify(response));
+                },
+                error: function(xhr, status, error) {
+                    // Handle errors
+                    console.log("Error: " + error);
+                }
+            });
+        });
+    });
+    </script>
+    
+
+
+</body>
+</html>
